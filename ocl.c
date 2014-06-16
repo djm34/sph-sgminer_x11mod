@@ -370,7 +370,7 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize)
 	/////////////////////////////////////////////////////////////////
 	// Create an OpenCL command queue
 	/////////////////////////////////////////////////////////////////
-	if ((cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) || (cgpu->kernel == KL_X13MODOLD))
+	if ((cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) || (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD))
 		clState->commandQueue = clCreateCommandQueue(clState->context, devices[gpu],
 							     0, &status);
 	else
@@ -572,6 +572,11 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize)
 			applog(LOG_WARNING, "Kernel x13mod is experimental.");
 			strcpy(filename, X13MOD_KERNNAME".cl");
 			strcpy(binaryfilename, X13MOD_KERNNAME);
+			break;
+        case KL_NIST5:
+			applog(LOG_WARNING, "Kernel nist5 is experimental.");
+			strcpy(filename, NIST5_KERNNAME".cl");
+			strcpy(binaryfilename, NIST5_KERNNAME);
 			break;
 		case KL_X13MODOLD:
 			applog(LOG_WARNING, "Kernel x13mod (AMD HD 5xxx/6xxx) is experimental.");
@@ -929,6 +934,13 @@ built:
 	    CL_CREATE_KERNEL(hamsi);
 	    CL_CREATE_KERNEL(fugue);
 	}
+	else if (clState->chosen_kernel == KL_NIST5) {
+	    CL_CREATE_KERNEL(blake);
+	    CL_CREATE_KERNEL(groestl);
+	    CL_CREATE_KERNEL(jh);
+	    CL_CREATE_KERNEL(keccak);
+	    CL_CREATE_KERNEL(skein);
+	}
 	else if (clState->chosen_kernel == KL_X13MODOLD) {
 	    CL_CREATE_KERNEL(blake);
 	    CL_CREATE_KERNEL(bmw);
@@ -950,7 +962,7 @@ built:
 	    }
 	}
 
-	if ((cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) || (cgpu->kernel == KL_X13MODOLD)) {
+	if ((cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) || (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD)) {
 		if (!allocateHashBuffer(gpu, clState))
 			return NULL;
 	}

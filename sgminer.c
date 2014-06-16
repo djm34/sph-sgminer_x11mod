@@ -57,6 +57,7 @@ char *curly = ":D";
 #include "bench_block.h"
 #include "scrypt.h"
 #include "darkcoin.h"
+#include "nist5.h"
 
 #if defined(unix) || defined(__APPLE__)
 	#include <errno.h>
@@ -4345,6 +4346,9 @@ void write_config(FILE *fcfg)
 				case KL_X11MOD:
 					fprintf(fcfg, X11MOD_KERNNAME);
 					break;
+                case KL_NIST5:
+					fprintf(fcfg, NIST5_KERNNAME);
+					break;
 				case KL_X13MOD:
 					fprintf(fcfg, X13MOD_KERNNAME);
 					break;
@@ -6200,6 +6204,9 @@ static void rebuild_nonce(struct work *work, uint32_t nonce)
 			break;
 		case KL_TWECOIN:
 			twecoin_regenhash(work);
+			break;
+		case KL_NIST5:
+			nist5_regenhash(work);
 			break;
 		case KL_MARUCOIN:
 		case KL_X13MOD:

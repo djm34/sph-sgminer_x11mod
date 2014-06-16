@@ -11,54 +11,23 @@ Jeff Garzik (jgarzik).
 
 License: GPLv3.  See `COPYING` for details.
 
-## Mod x11 (separate kernels)
+## nist5 (seperate kernels)
+This release is based on the lasybear release of the X11/X13mod and works best with 14.6 catalyst drivers
 
-0. Use "kernel" : "x11mod" in config file or -k x11mod via command line.
+0. Use "kernel" : "nist5" in config file or -k nist5 via command line.
 1. In case of instability please set a little bit lower engine frequency than a original sgminer.
-
-My experience:
-
-Single MSI R9 280x **3.4 MH/s**
-* `"intensity" : "15",`
-* `"vector" : "1",`
-* `"worksize" : "256",`
-* `"kernel" : "x11mod",`
-* `"thread-concurrency" : "8192",`
-* `"lookup-gap" : "2",`
-* `"gpu-engine" : "1200",`
-* `"gpu-memclock" : "1500",`
-* `"gpu-powertune" : "20",`
-* `"gpu-vddc" : "1.200",`
-* `"gpu-threads" : "2"`
-
-Rig
-5 x Sapphire R9 270x Vapor-X **10.43 MH/s** (~**2.08 MH/s per card**)
-* `"intensity" : "15",`
-* `"vectors" : "1",`
-* `"worksize" : "128",`
-* `"kernel" : "x11mod",`
-* `"thread-concurrency" : "8192",`
-* `"lookup-gap" : "2",`
-* `"gpu-engine" : "1150",`
-* `"gpu-memclock" : "1500",`
-* `"gpu-powertune" : "20",`
-* `"gpu-vddc" : "1.150,1.150,1.150,1.150,1.150",`
-* `"gpu-threads" : "2"`
+2. Don't forget to enable ADL support as the temperature can be rather high. 
 
 
-NO HIDDEN MININGS )
+speed obtained with a single R9 290x: ~15.8MHash/s (1050MHz)
+(twice the speed with the standard talkcoin kernel)
+
 
 **If you satisfied, please donate**
 
-**Remember remember the 5th of November**
-* **`BTC: 1AiCRMxgf1ptVQwx6hDuKMu4f7F27QmJC2`**
-* **`DRK: XrVcX5LEiUVxWRTBMbomopJkfHc3uGDQHe`**
-
-**lasybear**
-* **`BTC: 1LykvDuT7PCJ2xgT513RsyWQSZ9pbrDFa6`**
-* **`MRO: 47mfp5AVx6R1Gdc6qPZeV2Ceq1Aw3HFXLRHgjW2pHszVRLzg5pe4tNPMz1NSmAYADGFmUDthoLzyBDBGEz7AoFya9QZKWcu`**
-* **`LTC: LXSi41BKaCmxHKLiEZdstk648X79YjcXpv`**
-* **`DRK: XxMb95zfrxw8Csh9hSX3T98McDGZqk3Qrm`**
+**djm34**
+* **`BTC: 1NENYmxwZGHsKFmyjTc5WferTn5VTFb7Ze`**
+* **`TAC: TuqNvPoQxghHfzwnPpAxSTiYoN6FM8LM5p`**
 
 Thanks.
 
