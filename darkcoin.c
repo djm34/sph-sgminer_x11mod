@@ -137,7 +137,7 @@ inline void xhash(void *state, const void *input)
     sph_echo512 (&ctx.echo1, hashB, 64);   
     sph_echo512_close(&ctx.echo1, hashA);    
 
-    memcpy(state, hashA, 32);
+    memcpy(state, hashA, 32);  
 
 }
 
