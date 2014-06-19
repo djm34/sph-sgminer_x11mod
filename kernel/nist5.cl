@@ -161,32 +161,33 @@ __kernel void groestl(__global hash_t* hashes)
     uint gid = get_global_id(0);
     __global hash_t *hash = &(hashes[gid-get_global_offset(0)]);
 
-    __local sph_u64 T0_L[256], T1_L[256], T2_L[256], T3_L[256], T4_L[256], T5_L[256], T6_L[256], T7_L[256];
+    __local sph_u64 T0_C[256], T1_C[256], T2_C[256], T3_C[256], T4_C[256], T5_C[256], T6_C[256], T7_C[256];
 
     int init = get_local_id(0);
     int step = get_local_size(0);
 
     for (int i = init; i < 256; i += step)
     {
-        T0_L[i] = T0[i];
-        T1_L[i] = T1[i];
-        T2_L[i] = T2[i];
-        T3_L[i] = T3[i];
-        T4_L[i] = T4[i];
-        T5_L[i] = T5[i];
-        T6_L[i] = T6[i];
-        T7_L[i] = T7[i];
+        T0_C[i] = T0[i];
+        T1_C[i] = T1[i];
+        T2_C[i] = T2[i];
+        T3_C[i] = T3[i];
+        T4_C[i] = T4[i];
+        T5_C[i] = T5[i];
+        T6_C[i] = T6[i];
+        T7_C[i] = T7[i];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
-#define T0 T0_L
-#define T1 T1_L
-#define T2 T2_L
-#define T3 T3_L
-#define T4 T4_L
-#define T5 T5_L
-#define T6 T6_L
-#define T7 T7_L
+#define T0 T0_C
+#define T1 T1_C
+#define T2 T2_C
+#define T3 T3_C
+#define T4 T4_C
+#define T5 T5_C
+#define T6 T6_C
+#define T7 T7_C
+
 
     // groestl
 

@@ -102,6 +102,15 @@ typedef long sph_s64;
     #define DEC64BE(x) SWAP8(*(const __global sph_u64 *) (x));
 #endif
 
+#define SHL(x, n)            ((x) << (n))
+#define SHR(x, n)            ((x) >> (n))
+
+#define CONST_EXP2    q[i+0] + SPH_ROTL64(q[i+1], 5)  + q[i+2] + SPH_ROTL64(q[i+3], 11) + \
+                    q[i+4] + SPH_ROTL64(q[i+5], 27) + q[i+6] + SPH_ROTL64(q[i+7], 32) + \
+                    q[i+8] + SPH_ROTL64(q[i+9], 37) + q[i+10] + SPH_ROTL64(q[i+11], 43) + \
+                    q[i+12] + SPH_ROTL64(q[i+13], 53) + (SHR(q[i+14],1) ^ q[i+14]) + (SHR(q[i+15],2) ^ q[i+15])
+
+
 typedef union {
     unsigned char h1[64];
     uint h4[16];
@@ -168,13 +177,17 @@ __kernel void bmw(__global hash_t* hashes)
 {
     uint gid = get_global_id(0);
     __global hash_t *hash = &(hashes[gid-get_global_offset(0)]);
+
+
     // bmw
     sph_u64 BMW_H[16];
+
+#pragma unroll 16
     for(unsigned u = 0; u < 16; u++)
         BMW_H[u] = BMW_IV512[u];
 
-    sph_u64 BMW_h1[16], BMW_h2[16];
-    sph_u64 mv[16];
+    sph_u64 mv[16],q[32];
+	sph_u64 tmp;
 
     mv[ 0] = SWAP8(hash->h8[0]);
     mv[ 1] = SWAP8(hash->h8[1]);
@@ -191,35 +204,229 @@ __kernel void bmw(__global hash_t* hashes)
     mv[12] = 0;
     mv[13] = 0;
     mv[14] = 0;
-    mv[15] = 0x200;
-#define M(x)    (mv[x])
-#define H(x)    (BMW_H[x])
-#define dH(x)   (BMW_h2[x])
+    mv[15] = SPH_C64(512);
 
-    FOLDb;
 
-#undef M
-#undef H
-#undef dH
+tmp = (mv[ 5] ^ BMW_H[ 5]) - (mv[ 7] ^ BMW_H[ 7]) + (mv[10] ^ BMW_H[10]) + (mv[13] ^ BMW_H[13]) + (mv[14] ^ BMW_H[14]);
+    q[0] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp,  4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[1];
+    tmp = (mv[ 6] ^ BMW_H[ 6]) - (mv[ 8] ^ BMW_H[ 8]) + (mv[11] ^ BMW_H[11]) + (mv[14] ^ BMW_H[14]) - (mv[15] ^ BMW_H[15]);
+    q[1] = (SHR(tmp, 1) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 13) ^ SPH_ROTL64(tmp, 43)) + BMW_H[2];
+    tmp = (mv[ 0] ^ BMW_H[ 0]) + (mv[ 7] ^ BMW_H[ 7]) + (mv[ 9] ^ BMW_H[ 9]) - (mv[12] ^ BMW_H[12]) + (mv[15] ^ BMW_H[15]);
+    q[2] = (SHR(tmp, 2) ^ SHL(tmp, 1) ^ SPH_ROTL64(tmp, 19) ^ SPH_ROTL64(tmp, 53)) + BMW_H[3];
+    tmp = (mv[ 0] ^ BMW_H[ 0]) - (mv[ 1] ^ BMW_H[ 1]) + (mv[ 8] ^ BMW_H[ 8]) - (mv[10] ^ BMW_H[10]) + (mv[13] ^ BMW_H[13]);
+    q[3] = (SHR(tmp, 2) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 28) ^ SPH_ROTL64(tmp, 59)) + BMW_H[4];
+    tmp = (mv[ 1] ^ BMW_H[ 1]) + (mv[ 2] ^ BMW_H[ 2]) + (mv[ 9] ^ BMW_H[ 9]) - (mv[11] ^ BMW_H[11]) - (mv[14] ^ BMW_H[14]);
+    q[4] = (SHR(tmp, 1) ^ tmp) + BMW_H[5];
+    tmp = (mv[ 3] ^ BMW_H[ 3]) - (mv[ 2] ^ BMW_H[ 2]) + (mv[10] ^ BMW_H[10]) - (mv[12] ^ BMW_H[12]) + (mv[15] ^ BMW_H[15]);
+    q[5] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp,  4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[6];
+    tmp = (mv[ 4] ^ BMW_H[ 4]) - (mv[ 0] ^ BMW_H[ 0]) - (mv[ 3] ^ BMW_H[ 3]) - (mv[11] ^ BMW_H[11]) + (mv[13] ^ BMW_H[13]);
+    q[6] = (SHR(tmp, 1) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 13) ^ SPH_ROTL64(tmp, 43)) + BMW_H[7];
+    tmp = (mv[ 1] ^ BMW_H[ 1]) - (mv[ 4] ^ BMW_H[ 4]) - (mv[ 5] ^ BMW_H[ 5]) - (mv[12] ^ BMW_H[12]) - (mv[14] ^ BMW_H[14]);
+    q[7] = (SHR(tmp, 2) ^ SHL(tmp, 1) ^ SPH_ROTL64(tmp, 19) ^ SPH_ROTL64(tmp, 53)) + BMW_H[8];
+    tmp = (mv[ 2] ^ BMW_H[ 2]) - (mv[ 5] ^ BMW_H[ 5]) - (mv[ 6] ^ BMW_H[ 6]) + (mv[13] ^ BMW_H[13]) - (mv[15] ^ BMW_H[15]);
+    q[8] = (SHR(tmp, 2) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 28) ^ SPH_ROTL64(tmp, 59)) + BMW_H[9];
+    tmp = (mv[ 0] ^ BMW_H[ 0]) - (mv[ 3] ^ BMW_H[ 3]) + (mv[ 6] ^ BMW_H[ 6]) - (mv[ 7] ^ BMW_H[ 7]) + (mv[14] ^ BMW_H[14]);
+    q[9] = (SHR(tmp, 1) ^ tmp) + BMW_H[10];
+    tmp = (mv[ 8] ^ BMW_H[ 8]) - (mv[ 1] ^ BMW_H[ 1]) - (mv[ 4] ^ BMW_H[ 4]) - (mv[ 7] ^ BMW_H[ 7]) + (mv[15] ^ BMW_H[15]);
+    q[10] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp,  4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[11];
+    tmp = (mv[ 8] ^ BMW_H[ 8]) - (mv[ 0] ^ BMW_H[ 0]) - (mv[ 2] ^ BMW_H[ 2]) - (mv[ 5] ^ BMW_H[ 5]) + (mv[ 9] ^ BMW_H[ 9]);
+    q[11] = (SHR(tmp, 1) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 13) ^ SPH_ROTL64(tmp, 43)) + BMW_H[12];
+    tmp = (mv[ 1] ^ BMW_H[ 1]) + (mv[ 3] ^ BMW_H[ 3]) - (mv[ 6] ^ BMW_H[ 6]) - (mv[ 9] ^ BMW_H[ 9]) + (mv[10] ^ BMW_H[10]);
+    q[12] = (SHR(tmp, 2) ^ SHL(tmp, 1) ^ SPH_ROTL64(tmp, 19) ^ SPH_ROTL64(tmp, 53)) + BMW_H[13];
+    tmp = (mv[ 2] ^ BMW_H[ 2]) + (mv[ 4] ^ BMW_H[ 4]) + (mv[ 7] ^ BMW_H[ 7]) + (mv[10] ^ BMW_H[10]) + (mv[11] ^ BMW_H[11]);
+    q[13] = (SHR(tmp, 2) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 28) ^ SPH_ROTL64(tmp, 59)) + BMW_H[14];
+    tmp = (mv[ 3] ^ BMW_H[ 3]) - (mv[ 5] ^ BMW_H[ 5]) + (mv[ 8] ^ BMW_H[ 8]) - (mv[11] ^ BMW_H[11]) - (mv[12] ^ BMW_H[12]);
+    q[14] = (SHR(tmp, 1) ^ tmp) + BMW_H[15];
+    tmp = (mv[12] ^ BMW_H[12]) - (mv[ 4] ^ BMW_H[ 4]) - (mv[ 6] ^ BMW_H[ 6]) - (mv[ 9] ^ BMW_H[ 9]) + (mv[13] ^ BMW_H[13]);
+    q[15] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp, 4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[0];
 
-#define M(x)    (BMW_h2[x])
-#define H(x)    (final_b[x])
-#define dH(x)   (BMW_h1[x])
+#pragma unroll 2
+    for(int i=0;i<2;i++)
+    {
+        q[i+16] =
+        (SHR(q[i], 1) ^ SHL(q[i], 2) ^ SPH_ROTL64(q[i], 13) ^ SPH_ROTL64(q[i], 43)) +
+        (SHR(q[i+1], 2) ^ SHL(q[i+1], 1) ^ SPH_ROTL64(q[i+1], 19) ^ SPH_ROTL64(q[i+1], 53)) +
+        (SHR(q[i+2], 2) ^ SHL(q[i+2], 2) ^ SPH_ROTL64(q[i+2], 28) ^ SPH_ROTL64(q[i+2], 59)) +
+        (SHR(q[i+3], 1) ^ SHL(q[i+3], 3) ^ SPH_ROTL64(q[i+3],  4) ^ SPH_ROTL64(q[i+3], 37)) +
+        (SHR(q[i+4], 1) ^ SHL(q[i+4], 2) ^ SPH_ROTL64(q[i+4], 13) ^ SPH_ROTL64(q[i+4], 43)) +
+        (SHR(q[i+5], 2) ^ SHL(q[i+5], 1) ^ SPH_ROTL64(q[i+5], 19) ^ SPH_ROTL64(q[i+5], 53)) +
+        (SHR(q[i+6], 2) ^ SHL(q[i+6], 2) ^ SPH_ROTL64(q[i+6], 28) ^ SPH_ROTL64(q[i+6], 59)) +
+        (SHR(q[i+7], 1) ^ SHL(q[i+7], 3) ^ SPH_ROTL64(q[i+7],  4) ^ SPH_ROTL64(q[i+7], 37)) +
+        (SHR(q[i+8], 1) ^ SHL(q[i+8], 2) ^ SPH_ROTL64(q[i+8], 13) ^ SPH_ROTL64(q[i+8], 43)) +
+        (SHR(q[i+9], 2) ^ SHL(q[i+9], 1) ^ SPH_ROTL64(q[i+9], 19) ^ SPH_ROTL64(q[i+9], 53)) +
+        (SHR(q[i+10], 2) ^ SHL(q[i+10], 2) ^ SPH_ROTL64(q[i+10], 28) ^ SPH_ROTL64(q[i+10], 59)) +
+        (SHR(q[i+11], 1) ^ SHL(q[i+11], 3) ^ SPH_ROTL64(q[i+11],  4) ^ SPH_ROTL64(q[i+11], 37)) +
+        (SHR(q[i+12], 1) ^ SHL(q[i+12], 2) ^ SPH_ROTL64(q[i+12], 13) ^ SPH_ROTL64(q[i+12], 43)) +
+        (SHR(q[i+13], 2) ^ SHL(q[i+13], 1) ^ SPH_ROTL64(q[i+13], 19) ^ SPH_ROTL64(q[i+13], 53)) +
+        (SHR(q[i+14], 2) ^ SHL(q[i+14], 2) ^ SPH_ROTL64(q[i+14], 28) ^ SPH_ROTL64(q[i+14], 59)) +
+        (SHR(q[i+15], 1) ^ SHL(q[i+15], 3) ^ SPH_ROTL64(q[i+15],  4) ^ SPH_ROTL64(q[i+15], 37)) +
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i+10], i+11) ) ^ BMW_H[i+7]);
+    }
 
-    FOLDb;
+#pragma unroll 4
+    for(int i=2;i<6;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i+10], i+11) ) ^ BMW_H[i+7]);
+    }
+#pragma unroll 3
+    for(int i=6;i<9;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i-6], (i-6)+1) ) ^ BMW_H[i+7]);
+    }
+#pragma unroll 4
+    for(int i=9;i<13;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i-6], (i-6)+1) ) ^ BMW_H[i-9]);
+    }
+#pragma unroll 3
+    for(int i=13;i<16;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i-13], (i-13)+1) - SPH_ROTL64(mv[i-6], (i-6)+1) ) ^ BMW_H[i-9]);
+    }
 
-#undef M
-#undef H
-#undef dH
+sph_u64 XL64 = q[16]^q[17]^q[18]^q[19]^q[20]^q[21]^q[22]^q[23];
+sph_u64 XH64 =  XL64^q[24]^q[25]^q[26]^q[27]^q[28]^q[29]^q[30]^q[31];
 
-    hash->h8[0] = SWAP8(BMW_h1[8]);
-    hash->h8[1] = SWAP8(BMW_h1[9]);
-    hash->h8[2] = SWAP8(BMW_h1[10]);
-    hash->h8[3] = SWAP8(BMW_h1[11]);
-    hash->h8[4] = SWAP8(BMW_h1[12]);
-    hash->h8[5] = SWAP8(BMW_h1[13]);
-    hash->h8[6] = SWAP8(BMW_h1[14]);
-    hash->h8[7] = SWAP8(BMW_h1[15]);
+    BMW_H[0] =                       (SHL(XH64, 5) ^ SHR(q[16],5) ^ mv[ 0]) + (    XL64    ^ q[24] ^ q[ 0]);
+    BMW_H[1] =                       (SHR(XH64, 7) ^ SHL(q[17],8) ^ mv[ 1]) + (    XL64    ^ q[25] ^ q[ 1]);
+    BMW_H[2] =                       (SHR(XH64, 5) ^ SHL(q[18],5) ^ mv[ 2]) + (    XL64    ^ q[26] ^ q[ 2]);
+    BMW_H[3] =                       (SHR(XH64, 1) ^ SHL(q[19],5) ^ mv[ 3]) + (    XL64    ^ q[27] ^ q[ 3]);
+    BMW_H[4] =                       (SHR(XH64, 3) ^     q[20]    ^ mv[ 4]) + (    XL64    ^ q[28] ^ q[ 4]);
+    BMW_H[5] =                       (SHL(XH64, 6) ^ SHR(q[21],6) ^ mv[ 5]) + (    XL64    ^ q[29] ^ q[ 5]);
+    BMW_H[6] =                       (SHR(XH64, 4) ^ SHL(q[22],6) ^ mv[ 6]) + (    XL64    ^ q[30] ^ q[ 6]);
+    BMW_H[7] =                       (SHR(XH64,11) ^ SHL(q[23],2) ^ mv[ 7]) + (    XL64    ^ q[31] ^ q[ 7]);
+
+    BMW_H[ 8] = SPH_ROTL64(BMW_H[4], 9) + (    XH64     ^     q[24]    ^ mv[ 8]) + (SHL(XL64,8) ^ q[23] ^ q[ 8]);
+    BMW_H[ 9] = SPH_ROTL64(BMW_H[5],10) + (    XH64     ^     q[25]    ^ mv[ 9]) + (SHR(XL64,6) ^ q[16] ^ q[ 9]);
+    BMW_H[10] = SPH_ROTL64(BMW_H[6],11) + (    XH64     ^     q[26]    ^ mv[10]) + (SHL(XL64,6) ^ q[17] ^ q[10]);
+    BMW_H[11] = SPH_ROTL64(BMW_H[7],12) + (    XH64     ^     q[27]    ^ mv[11]) + (SHL(XL64,4) ^ q[18] ^ q[11]);
+    BMW_H[12] = SPH_ROTL64(BMW_H[0],13) + (    XH64     ^     q[28]    ^ mv[12]) + (SHR(XL64,3) ^ q[19] ^ q[12]);
+    BMW_H[13] = SPH_ROTL64(BMW_H[1],14) + (    XH64     ^     q[29]    ^ mv[13]) + (SHR(XL64,4) ^ q[20] ^ q[13]);
+    BMW_H[14] = SPH_ROTL64(BMW_H[2],15) + (    XH64     ^     q[30]    ^ mv[14]) + (SHR(XL64,7) ^ q[21] ^ q[14]);
+    BMW_H[15] = SPH_ROTL64(BMW_H[3],16) + (    XH64     ^     q[31]    ^ mv[15]) + (SHR(XL64,2) ^ q[22] ^ q[15]);
+
+#pragma unroll 16
+	   for(int i=0;i<16;i++) {
+		   mv[i] = BMW_H[i];
+		   BMW_H[i] = 0xaaaaaaaaaaaaaaa0ull + (sph_u64)i;
+	   }
+
+    tmp = (mv[ 5] ^ BMW_H[ 5]) - (mv[ 7] ^ BMW_H[ 7]) + (mv[10] ^ BMW_H[10]) + (mv[13] ^ BMW_H[13]) + (mv[14] ^ BMW_H[14]);
+    q[0] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp,  4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[1];
+    tmp = (mv[ 6] ^ BMW_H[ 6]) - (mv[ 8] ^ BMW_H[ 8]) + (mv[11] ^ BMW_H[11]) + (mv[14] ^ BMW_H[14]) - (mv[15] ^ BMW_H[15]);
+    q[1] = (SHR(tmp, 1) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 13) ^ SPH_ROTL64(tmp, 43)) + BMW_H[2];
+    tmp = (mv[ 0] ^ BMW_H[ 0]) + (mv[ 7] ^ BMW_H[ 7]) + (mv[ 9] ^ BMW_H[ 9]) - (mv[12] ^ BMW_H[12]) + (mv[15] ^ BMW_H[15]);
+    q[2] = (SHR(tmp, 2) ^ SHL(tmp, 1) ^ SPH_ROTL64(tmp, 19) ^ SPH_ROTL64(tmp, 53)) + BMW_H[3];
+    tmp = (mv[ 0] ^ BMW_H[ 0]) - (mv[ 1] ^ BMW_H[ 1]) + (mv[ 8] ^ BMW_H[ 8]) - (mv[10] ^ BMW_H[10]) + (mv[13] ^ BMW_H[13]);
+    q[3] = (SHR(tmp, 2) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 28) ^ SPH_ROTL64(tmp, 59)) + BMW_H[4];
+    tmp = (mv[ 1] ^ BMW_H[ 1]) + (mv[ 2] ^ BMW_H[ 2]) + (mv[ 9] ^ BMW_H[ 9]) - (mv[11] ^ BMW_H[11]) - (mv[14] ^ BMW_H[14]);
+    q[4] = (SHR(tmp, 1) ^ tmp) + BMW_H[5];
+    tmp = (mv[ 3] ^ BMW_H[ 3]) - (mv[ 2] ^ BMW_H[ 2]) + (mv[10] ^ BMW_H[10]) - (mv[12] ^ BMW_H[12]) + (mv[15] ^ BMW_H[15]);
+    q[5] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp,  4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[6];
+    tmp = (mv[ 4] ^ BMW_H[ 4]) - (mv[ 0] ^ BMW_H[ 0]) - (mv[ 3] ^ BMW_H[ 3]) - (mv[11] ^ BMW_H[11]) + (mv[13] ^ BMW_H[13]);
+    q[6] = (SHR(tmp, 1) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 13) ^ SPH_ROTL64(tmp, 43)) + BMW_H[7];
+    tmp = (mv[ 1] ^ BMW_H[ 1]) - (mv[ 4] ^ BMW_H[ 4]) - (mv[ 5] ^ BMW_H[ 5]) - (mv[12] ^ BMW_H[12]) - (mv[14] ^ BMW_H[14]);
+    q[7] = (SHR(tmp, 2) ^ SHL(tmp, 1) ^ SPH_ROTL64(tmp, 19) ^ SPH_ROTL64(tmp, 53)) + BMW_H[8];
+    tmp = (mv[ 2] ^ BMW_H[ 2]) - (mv[ 5] ^ BMW_H[ 5]) - (mv[ 6] ^ BMW_H[ 6]) + (mv[13] ^ BMW_H[13]) - (mv[15] ^ BMW_H[15]);
+    q[8] = (SHR(tmp, 2) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 28) ^ SPH_ROTL64(tmp, 59)) + BMW_H[9];
+    tmp = (mv[ 0] ^ BMW_H[ 0]) - (mv[ 3] ^ BMW_H[ 3]) + (mv[ 6] ^ BMW_H[ 6]) - (mv[ 7] ^ BMW_H[ 7]) + (mv[14] ^ BMW_H[14]);
+    q[9] = (SHR(tmp, 1) ^ tmp) + BMW_H[10];
+    tmp = (mv[ 8] ^ BMW_H[ 8]) - (mv[ 1] ^ BMW_H[ 1]) - (mv[ 4] ^ BMW_H[ 4]) - (mv[ 7] ^ BMW_H[ 7]) + (mv[15] ^ BMW_H[15]);
+    q[10] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp,  4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[11];
+    tmp = (mv[ 8] ^ BMW_H[ 8]) - (mv[ 0] ^ BMW_H[ 0]) - (mv[ 2] ^ BMW_H[ 2]) - (mv[ 5] ^ BMW_H[ 5]) + (mv[ 9] ^ BMW_H[ 9]);
+    q[11] = (SHR(tmp, 1) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 13) ^ SPH_ROTL64(tmp, 43)) + BMW_H[12];
+    tmp = (mv[ 1] ^ BMW_H[ 1]) + (mv[ 3] ^ BMW_H[ 3]) - (mv[ 6] ^ BMW_H[ 6]) - (mv[ 9] ^ BMW_H[ 9]) + (mv[10] ^ BMW_H[10]);
+    q[12] = (SHR(tmp, 2) ^ SHL(tmp, 1) ^ SPH_ROTL64(tmp, 19) ^ SPH_ROTL64(tmp, 53)) + BMW_H[13];
+    tmp = (mv[ 2] ^ BMW_H[ 2]) + (mv[ 4] ^ BMW_H[ 4]) + (mv[ 7] ^ BMW_H[ 7]) + (mv[10] ^ BMW_H[10]) + (mv[11] ^ BMW_H[11]);
+    q[13] = (SHR(tmp, 2) ^ SHL(tmp, 2) ^ SPH_ROTL64(tmp, 28) ^ SPH_ROTL64(tmp, 59)) + BMW_H[14];
+    tmp = (mv[ 3] ^ BMW_H[ 3]) - (mv[ 5] ^ BMW_H[ 5]) + (mv[ 8] ^ BMW_H[ 8]) - (mv[11] ^ BMW_H[11]) - (mv[12] ^ BMW_H[12]);
+    q[14] = (SHR(tmp, 1) ^ tmp) + BMW_H[15];
+    tmp = (mv[12] ^ BMW_H[12]) - (mv[ 4] ^ BMW_H[ 4]) - (mv[ 6] ^ BMW_H[ 6]) - (mv[ 9] ^ BMW_H[ 9]) + (mv[13] ^ BMW_H[13]);
+    q[15] = (SHR(tmp, 1) ^ SHL(tmp, 3) ^ SPH_ROTL64(tmp, 4) ^ SPH_ROTL64(tmp, 37)) + BMW_H[0];
+
+  
+#pragma unroll 2
+    for(int i=0;i<2;i++)
+    {
+        q[i+16] =
+        (SHR(q[i], 1) ^ SHL(q[i], 2) ^ SPH_ROTL64(q[i], 13) ^ SPH_ROTL64(q[i], 43)) +
+        (SHR(q[i+1], 2) ^ SHL(q[i+1], 1) ^ SPH_ROTL64(q[i+1], 19) ^ SPH_ROTL64(q[i+1], 53)) +
+        (SHR(q[i+2], 2) ^ SHL(q[i+2], 2) ^ SPH_ROTL64(q[i+2], 28) ^ SPH_ROTL64(q[i+2], 59)) +
+        (SHR(q[i+3], 1) ^ SHL(q[i+3], 3) ^ SPH_ROTL64(q[i+3],  4) ^ SPH_ROTL64(q[i+3], 37)) +
+        (SHR(q[i+4], 1) ^ SHL(q[i+4], 2) ^ SPH_ROTL64(q[i+4], 13) ^ SPH_ROTL64(q[i+4], 43)) +
+        (SHR(q[i+5], 2) ^ SHL(q[i+5], 1) ^ SPH_ROTL64(q[i+5], 19) ^ SPH_ROTL64(q[i+5], 53)) +
+        (SHR(q[i+6], 2) ^ SHL(q[i+6], 2) ^ SPH_ROTL64(q[i+6], 28) ^ SPH_ROTL64(q[i+6], 59)) +
+        (SHR(q[i+7], 1) ^ SHL(q[i+7], 3) ^ SPH_ROTL64(q[i+7],  4) ^ SPH_ROTL64(q[i+7], 37)) +
+        (SHR(q[i+8], 1) ^ SHL(q[i+8], 2) ^ SPH_ROTL64(q[i+8], 13) ^ SPH_ROTL64(q[i+8], 43)) +
+        (SHR(q[i+9], 2) ^ SHL(q[i+9], 1) ^ SPH_ROTL64(q[i+9], 19) ^ SPH_ROTL64(q[i+9], 53)) +
+        (SHR(q[i+10], 2) ^ SHL(q[i+10], 2) ^ SPH_ROTL64(q[i+10], 28) ^ SPH_ROTL64(q[i+10], 59)) +
+        (SHR(q[i+11], 1) ^ SHL(q[i+11], 3) ^ SPH_ROTL64(q[i+11],  4) ^ SPH_ROTL64(q[i+11], 37)) +
+        (SHR(q[i+12], 1) ^ SHL(q[i+12], 2) ^ SPH_ROTL64(q[i+12], 13) ^ SPH_ROTL64(q[i+12], 43)) +
+        (SHR(q[i+13], 2) ^ SHL(q[i+13], 1) ^ SPH_ROTL64(q[i+13], 19) ^ SPH_ROTL64(q[i+13], 53)) +
+        (SHR(q[i+14], 2) ^ SHL(q[i+14], 2) ^ SPH_ROTL64(q[i+14], 28) ^ SPH_ROTL64(q[i+14], 59)) +
+        (SHR(q[i+15], 1) ^ SHL(q[i+15], 3) ^ SPH_ROTL64(q[i+15],  4) ^ SPH_ROTL64(q[i+15], 37)) +
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i+10], i+11) ) ^ BMW_H[i+7]);
+    }
+
+#pragma unroll 4
+    for(int i=2;i<6;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i+10], i+11) ) ^ BMW_H[i+7]);
+    }
+#pragma unroll 3
+    for(int i=6;i<9;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i-6], (i-6)+1) ) ^ BMW_H[i+7]);
+    }
+#pragma unroll 4
+    for(int i=9;i<13;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i+3], i+4) - SPH_ROTL64(mv[i-6], (i-6)+1) ) ^ BMW_H[i-9]);
+    }
+#pragma unroll 3
+    for(int i=13;i<16;i++) {
+        q[i+16] = CONST_EXP2 + 
+        ((    ((i+16)*(0x0555555555555555ull)) + SPH_ROTL64(mv[i], i+1) +
+            SPH_ROTL64(mv[i-13], (i-13)+1) - SPH_ROTL64(mv[i-6], (i-6)+1) ) ^ BMW_H[i-9]);
+    }
+
+XL64 = q[16]^q[17]^q[18]^q[19]^q[20]^q[21]^q[22]^q[23];
+XH64 =  XL64^q[24]^q[25]^q[26]^q[27]^q[28]^q[29]^q[30]^q[31];
+    BMW_H[0] =                       (SHL(XH64, 5) ^ SHR(q[16],5) ^ mv[ 0]) + (    XL64    ^ q[24] ^ q[ 0]);
+    BMW_H[1] =                       (SHR(XH64, 7) ^ SHL(q[17],8) ^ mv[ 1]) + (    XL64    ^ q[25] ^ q[ 1]);
+    BMW_H[2] =                       (SHR(XH64, 5) ^ SHL(q[18],5) ^ mv[ 2]) + (    XL64    ^ q[26] ^ q[ 2]);
+    BMW_H[3] =                       (SHR(XH64, 1) ^ SHL(q[19],5) ^ mv[ 3]) + (    XL64    ^ q[27] ^ q[ 3]);
+    BMW_H[4] =                       (SHR(XH64, 3) ^     q[20]    ^ mv[ 4]) + (    XL64    ^ q[28] ^ q[ 4]);
+    BMW_H[5] =                       (SHL(XH64, 6) ^ SHR(q[21],6) ^ mv[ 5]) + (    XL64    ^ q[29] ^ q[ 5]);
+    BMW_H[6] =                       (SHR(XH64, 4) ^ SHL(q[22],6) ^ mv[ 6]) + (    XL64    ^ q[30] ^ q[ 6]);
+    BMW_H[7] =                       (SHR(XH64,11) ^ SHL(q[23],2) ^ mv[ 7]) + (    XL64    ^ q[31] ^ q[ 7]);
+
+    BMW_H[ 8] = SPH_ROTL64(BMW_H[4], 9) + (    XH64     ^     q[24]    ^ mv[ 8]) + (SHL(XL64,8) ^ q[23] ^ q[ 8]);
+    BMW_H[ 9] = SPH_ROTL64(BMW_H[5],10) + (    XH64     ^     q[25]    ^ mv[ 9]) + (SHR(XL64,6) ^ q[16] ^ q[ 9]);
+    BMW_H[10] = SPH_ROTL64(BMW_H[6],11) + (    XH64     ^     q[26]    ^ mv[10]) + (SHL(XL64,6) ^ q[17] ^ q[10]);
+    BMW_H[11] = SPH_ROTL64(BMW_H[7],12) + (    XH64     ^     q[27]    ^ mv[11]) + (SHL(XL64,4) ^ q[18] ^ q[11]);
+    BMW_H[12] = SPH_ROTL64(BMW_H[0],13) + (    XH64     ^     q[28]    ^ mv[12]) + (SHR(XL64,3) ^ q[19] ^ q[12]);
+    BMW_H[13] = SPH_ROTL64(BMW_H[1],14) + (    XH64     ^     q[29]    ^ mv[13]) + (SHR(XL64,4) ^ q[20] ^ q[13]);
+    BMW_H[14] = SPH_ROTL64(BMW_H[2],15) + (    XH64     ^     q[30]    ^ mv[14]) + (SHR(XL64,7) ^ q[21] ^ q[14]);
+    BMW_H[15] = SPH_ROTL64(BMW_H[3],16) + (    XH64     ^     q[31]    ^ mv[15]) + (SHR(XL64,2) ^ q[22] ^ q[15]);
+
+	hash->h8[0] = SWAP8(BMW_H[8]);
+    hash->h8[1] = SWAP8(BMW_H[9]);
+    hash->h8[2] = SWAP8(BMW_H[10]);
+    hash->h8[3] = SWAP8(BMW_H[11]);
+    hash->h8[4] = SWAP8(BMW_H[12]);
+    hash->h8[5] = SWAP8(BMW_H[13]);
+    hash->h8[6] = SWAP8(BMW_H[14]);
+    hash->h8[7] = SWAP8(BMW_H[15]);
 
     barrier(CLK_GLOBAL_MEM_FENCE);
 }
@@ -230,32 +437,38 @@ __kernel void groestl(__global hash_t* hashes)
     uint gid = get_global_id(0);
     __global hash_t *hash = &(hashes[gid-get_global_offset(0)]);
 
-    __local sph_u64 T0_L[256], T1_L[256], T2_L[256], T3_L[256], T4_L[256], T5_L[256], T6_L[256], T7_L[256];
-
+#if !SPH_SMALL_FOOTPRINT_GROESTL
+    __local sph_u64 T0_C[256], T1_C[256], T2_C[256], T3_C[256];
+    __local sph_u64 T4_C[256], T5_C[256], T6_C[256], T7_C[256];
+#else
+    __local sph_u64 T0_C[256], T4_C[256];
+#endif
     int init = get_local_id(0);
     int step = get_local_size(0);
-
+	
     for (int i = init; i < 256; i += step)
     {
-        T0_L[i] = T0[i];
-        T1_L[i] = T1[i];
-        T2_L[i] = T2[i];
-        T3_L[i] = T3[i];
-        T4_L[i] = T4[i];
-        T5_L[i] = T5[i];
-        T6_L[i] = T6[i];
-        T7_L[i] = T7[i];
+        T0_C[i] = T0[i];
+        T4_C[i] = T4[i];
+#if !SPH_SMALL_FOOTPRINT_GROESTL
+        T1_C[i] = T1[i];
+        T2_C[i] = T2[i];
+        T3_C[i] = T3[i];
+        T5_C[i] = T5[i];
+        T6_C[i] = T6[i];
+        T7_C[i] = T7[i];
+#endif
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);    // groestl
 
-#define T0 T0_L
-#define T1 T1_L
-#define T2 T2_L
-#define T3 T3_L
-#define T4 T4_L
-#define T5 T5_L
-#define T6 T6_L
-#define T7 T7_L
+#define T0 T0_C
+#define T1 T1_C
+#define T2 T2_C
+#define T3 T3_C
+#define T4 T4_C
+#define T5 T5_C
+#define T6 T6_C
+#define T7 T7_C
 
     // groestl
 
@@ -865,8 +1078,7 @@ __kernel void hamsi(__global hash_t* hashes)
 {
     uint gid = get_global_id(0);
     uint offset = get_global_offset(0);
-    hash_t hash;
-    __global hash_t *hashp = &(hashes[gid-offset]);
+    __global hash_t *hash = &(hashes[gid-offset]);
 
     sph_u32 c0 = HAMSI_IV512[0], c1 = HAMSI_IV512[1], c2 = HAMSI_IV512[2], c3 = HAMSI_IV512[3];
     sph_u32 c4 = HAMSI_IV512[4], c5 = HAMSI_IV512[5], c6 = HAMSI_IV512[6], c7 = HAMSI_IV512[7];
@@ -876,11 +1088,8 @@ __kernel void hamsi(__global hash_t* hashes)
     sph_u32 m8, m9, mA, mB, mC, mD, mE, mF;
     sph_u32 h[16] = { c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, cA, cB, cC, cD, cE, cF };
 
-    for (int i = 0; i < 8; i++) {
-        hash.h8[i] = hashes[gid-offset].h8[i];
-    }
 
-#define buf(u) hash.h1[i + u]
+#define buf(u) hash->h1[i + u]
     for(int i = 0; i < 64; i += 8) {
         INPUT_BIG;
         P_BIG;
@@ -898,7 +1107,7 @@ __kernel void hamsi(__global hash_t* hashes)
     T_BIG;
 
     for (unsigned u = 0; u < 16; u ++)
-        hashp->h4[u] = h[u];
+        hash->h4[u] = h[u];
 
     barrier(CLK_GLOBAL_MEM_FENCE);
 }
@@ -908,12 +1117,7 @@ __kernel void fugue(__global hash_t* hashes, __global uint* output, const ulong 
 {
     uint gid = get_global_id(0);
     uint offset = get_global_offset(0);
-    hash_t hash;
-    __global hash_t *hashp = &(hashes[gid-offset]);
-
-    for (int i = 0; i < 8; i++) {
-        hash.h8[i] = hashes[gid-offset].h8[i];
-    }
+    __global hash_t *hash = &(hashes[gid-offset]);
 
     // fugue
     sph_u32 S00, S01, S02, S03, S04, S05, S06, S07, S08, S09;
@@ -929,12 +1133,12 @@ __kernel void fugue(__global hash_t* hashes, __global uint* output, const ulong 
     S28 = SPH_C32(0xaac6e2c9); S29 = SPH_C32(0xddb21398); S30 = SPH_C32(0xcae65838); S31 = SPH_C32(0x437f203f);
     S32 = SPH_C32(0x25ea78e7); S33 = SPH_C32(0x951fddd6); S34 = SPH_C32(0xda6ed11d); S35 = SPH_C32(0xe13e3567);
 
-    FUGUE512_3((hash.h4[0x0]), (hash.h4[0x1]), (hash.h4[0x2]));
-    FUGUE512_3((hash.h4[0x3]), (hash.h4[0x4]), (hash.h4[0x5]));
-    FUGUE512_3((hash.h4[0x6]), (hash.h4[0x7]), (hash.h4[0x8]));
-    FUGUE512_3((hash.h4[0x9]), (hash.h4[0xA]), (hash.h4[0xB]));
-    FUGUE512_3((hash.h4[0xC]), (hash.h4[0xD]), (hash.h4[0xE]));
-    FUGUE512_3((hash.h4[0xF]), as_uint2(fc_bit_count).y, as_uint2(fc_bit_count).x);
+    FUGUE512_3((hash->h4[0x0]), (hash->h4[0x1]), (hash->h4[0x2]));
+    FUGUE512_3((hash->h4[0x3]), (hash->h4[0x4]), (hash->h4[0x5]));
+    FUGUE512_3((hash->h4[0x6]), (hash->h4[0x7]), (hash->h4[0x8]));
+    FUGUE512_3((hash->h4[0x9]), (hash->h4[0xA]), (hash->h4[0xB]));
+    FUGUE512_3((hash->h4[0xC]), (hash->h4[0xD]), (hash->h4[0xE]));
+    FUGUE512_3((hash->h4[0xF]), as_uint2(fc_bit_count).y, as_uint2(fc_bit_count).x);
 
     // apply round shift if necessary
     int i;
@@ -975,24 +1179,24 @@ __kernel void fugue(__global hash_t* hashes, __global uint* output, const ulong 
     S18 ^= S00;
     S27 ^= S00;
 
-    hash.h4[0] = SWAP4(S01);
-    hash.h4[1] = SWAP4(S02);
-    hash.h4[2] = SWAP4(S03);
-    hash.h4[3] = SWAP4(S04);
-    hash.h4[4] = SWAP4(S09);
-    hash.h4[5] = SWAP4(S10);
-    hash.h4[6] = SWAP4(S11);
-    hash.h4[7] = SWAP4(S12);
-    hash.h4[8] = SWAP4(S18);
-    hash.h4[9] = SWAP4(S19);
-    hash.h4[10] = SWAP4(S20);
-    hash.h4[11] = SWAP4(S21);
-    hash.h4[12] = SWAP4(S27);
-    hash.h4[13] = SWAP4(S28);
-    hash.h4[14] = SWAP4(S29);
-    hash.h4[15] = SWAP4(S30);
+    hash->h4[0] = SWAP4(S01);
+    hash->h4[1] = SWAP4(S02);
+    hash->h4[2] = SWAP4(S03);
+    hash->h4[3] = SWAP4(S04);
+    hash->h4[4] = SWAP4(S09);
+    hash->h4[5] = SWAP4(S10);
+    hash->h4[6] = SWAP4(S11);
+    hash->h4[7] = SWAP4(S12);
+    hash->h4[8] = SWAP4(S18);
+    hash->h4[9] = SWAP4(S19);
+    hash->h4[10] = SWAP4(S20);
+    hash->h4[11] = SWAP4(S21);
+    hash->h4[12] = SWAP4(S27);
+    hash->h4[13] = SWAP4(S28);
+    hash->h4[14] = SWAP4(S29);
+    hash->h4[15] = SWAP4(S30);
 
-    bool result = (hash.h8[3] <= target);
+    bool result = (hash->h8[3] <= target);
     if (result)
 	output[atomic_inc(output+0xFF)] = SWAP4(gid);
 
@@ -1004,6 +1208,7 @@ __kernel void fugue(__global hash_t* hashes, __global uint* output, const ulong 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void echo_hamsi_fugue(__global hash_t* hashes, __global uint* output, const ulong target)
 {
+	
     uint gid = get_global_id(0);
     uint offset = get_global_offset(0);
     hash_t hash;
@@ -1210,6 +1415,7 @@ __kernel void echo_hamsi_fugue(__global hash_t* hashes, __global uint* output, c
 	output[atomic_inc(output+0xFF)] = SWAP4(gid);
 
     barrier(CLK_GLOBAL_MEM_FENCE); 
+	
 }
 
 #endif // X13MODOLD

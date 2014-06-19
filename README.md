@@ -11,13 +11,15 @@ Jeff Garzik (jgarzik).
 
 License: GPLv3.  See `COPYING` for details.
 
+## X11mod/X13mod are now working with 14.6 catalyst drivers 
+
 ## nist5 (seperate kernels)
 This release is based on the lasybear release of the X11/X13mod and works best with 14.6 catalyst drivers
+(fix use is based on code developped by C. Büchner for ccminer)
 
 0. Use "kernel" : "nist5" in config file or -k nist5 via command line.
 1. In case of instability please set a little bit lower engine frequency than a original sgminer.
 2. Don't forget to enable ADL support as the temperature can be rather high. 
-
 
 speed obtained with a single R9 290x: ~15.8MHash/s (1050MHz)
 (twice the speed with the standard talkcoin kernel)
@@ -28,7 +30,7 @@ speed obtained with a single R9 290x: ~15.8MHash/s (1050MHz)
 **djm34**
 * **`BTC: 1NENYmxwZGHsKFmyjTc5WferTn5VTFb7Ze`**
 * **`TAC: TuqNvPoQxghHfzwnPpAxSTiYoN6FM8LM5p`**
-
+* **`DRK: XpeLYbqdqdC6FM51EPT1XsfXRG8TLqXEbe`**
 Thanks.
 
 ## Documentation
