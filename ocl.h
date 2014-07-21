@@ -26,8 +26,15 @@ typedef struct {
 	cl_kernel kernel_shavite;
 	cl_kernel kernel_simd;
 	cl_kernel kernel_echo;
+	cl_kernel kernel_shavite2;
+	cl_kernel kernel_simd2;
 	cl_kernel kernel_hamsi;
 	cl_kernel kernel_fugue;
+	cl_kernel kernel_shabal;
+	cl_kernel kernel_whirlpool;
+	cl_kernel kernel_whirlpool2;
+	cl_kernel kernel_whirlpool3;
+	cl_kernel kernel_whirlpool4;
 	cl_kernel kernel_echo_hamsi_fugue;
 	cl_command_queue commandQueue;
 	cl_program program;

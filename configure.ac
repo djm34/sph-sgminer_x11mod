@@ -347,6 +347,7 @@ AC_DEFINE_UNQUOTED([ZUIKKIS_KERNNAME], ["zuikkis"], [Filename for Zuikkis' optim
 AC_DEFINE_UNQUOTED([PSW_KERNNAME], ["psw"], [Filename for psw's experimental kernel])
 AC_DEFINE_UNQUOTED([DARKCOIN_KERNNAME], ["darkcoin"], [Filename for DarkCoin optimised kernel])
 AC_DEFINE_UNQUOTED([QUBITCOIN_KERNNAME], ["qubitcoin"], [Filename for QubitCoin optimised kernel])
+AC_DEFINE_UNQUOTED([QUBIT_KERNNAME], ["qubit"], [Filename for Qubit algo multikernel kernel])
 AC_DEFINE_UNQUOTED([QUARKCOIN_KERNNAME], ["quarkcoin"], [Filename for QuarkCoin optimised kernel])
 AC_DEFINE_UNQUOTED([MYRIADCOIN_GROESTL_KERNNAME], ["myriadcoin-groestl"], [Filename for MyriadCoin-Groestl optimised kernel])
 AC_DEFINE_UNQUOTED([FUGUECOIN_KERNNAME], ["fuguecoin"], [Filename for FugueCoin optimised kernel])
@@ -359,6 +360,9 @@ AC_DEFINE_UNQUOTED([MARUCOIN_KERNNAME], ["marucoin"], [Filename for MaruCoin opt
 AC_DEFINE_UNQUOTED([NIST5_KERNNAME], ["nist5"], [Filename for nist5 optimised kernel])
 AC_DEFINE_UNQUOTED([X11MOD_KERNNAME], ["x11mod"], [Filename for X11mod optimised kernel])
 AC_DEFINE_UNQUOTED([X13MOD_KERNNAME], ["x13mod"], [Filename for X13mod optimised kernel])
+AC_DEFINE_UNQUOTED([X15_KERNNAME], ["x15"], [Filename for X15 multi kernel])
+AC_DEFINE_UNQUOTED([W_KERNNAME], ["whirlcoin"], [Filename for W multi kernel])
+AC_DEFINE_UNQUOTED([FRESH_KERNNAME], ["fresh"], [Filename for fresh multi kernel])
 AC_DEFINE_UNQUOTED([X13MODOLD_KERNNAME], ["x13modold"], [Filename for X13mod optimised kernel (AMD HD 5xxx/6xxx)])
 
 AC_SUBST(OPENCL_LIBS)

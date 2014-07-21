@@ -53,6 +53,9 @@ sgminer_SOURCES += groestlcoin.c groestlcoin.h
 sgminer_SOURCES += sifcoin.c sifcoin.h
 sgminer_SOURCES += twecoin.c twecoin.h
 sgminer_SOURCES += marucoin.c marucoin.h
+sgminer_SOURCES += fresh.c fresh.h
+sgminer_SOURCES += whirlcoin.c whirlcoin.h
+sgminer_SOURCES += x15.c x15.h
 sgminer_SOURCES += nist5.c nist5.h
 sgminer_SOURCES += kernel/*.cl
 

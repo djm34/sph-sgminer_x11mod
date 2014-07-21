@@ -383,6 +383,7 @@ enum cl_kernels {
 	KL_ZUIKKIS,
 	KL_QUARKCOIN,	// kernels starting from this will have difficulty calculated by using quarkcoin algorithm
 	KL_QUBITCOIN,
+	KL_QUBIT,
 	KL_INKCOIN,
 	KL_ANIMECOIN,
 	KL_SIFCOIN,
@@ -394,6 +395,9 @@ enum cl_kernels {
 	KL_MARUCOIN,
 	KL_X11MOD,
 	KL_X13MOD,
+	KL_X15,
+	KL_FRESH,
+	KL_W,
 	KL_X13MODOLD,
 	KL_NIST5
 };

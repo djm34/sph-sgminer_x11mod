@@ -58,6 +58,8 @@ char *curly = ":D";
 #include "scrypt.h"
 #include "darkcoin.h"
 #include "nist5.h"
+#include "x15.h"
+#include "whirlcoin.h"
 
 #if defined(unix) || defined(__APPLE__)
 	#include <errno.h>
@@ -4316,6 +4318,12 @@ void write_config(FILE *fcfg)
 				case KL_QUBITCOIN:
 					fprintf(fcfg, QUBITCOIN_KERNNAME);
 					break;
+                case KL_QUBIT:
+					fprintf(fcfg, QUBIT_KERNNAME);
+					break;
+                case KL_FRESH:
+					fprintf(fcfg, FRESH_KERNNAME);
+					break;
 				case KL_QUARKCOIN:
 					fprintf(fcfg, QUARKCOIN_KERNNAME);
 					break;
@@ -4351,6 +4359,13 @@ void write_config(FILE *fcfg)
 					break;
 				case KL_X13MOD:
 					fprintf(fcfg, X13MOD_KERNNAME);
+					break;
+                case KL_X15:
+					fprintf(fcfg, X15_KERNNAME);
+					break;
+  
+                case KL_W:
+					fprintf(fcfg, W_KERNNAME);
 					break;
 				case KL_X13MODOLD:
 					fprintf(fcfg, X13MODOLD_KERNNAME);
@@ -6018,7 +6033,7 @@ static void gen_stratum_work(struct pool *pool, struct work *work)
 	cg_dwlock(&pool->data_lock);
 
 	/* Generate merkle root */
-	if (gpus[0].kernel == KL_FUGUECOIN || gpus[0].kernel == KL_GROESTLCOIN || gpus[0].kernel == KL_TWECOIN)
+	if (gpus[0].kernel == KL_FUGUECOIN || gpus[0].kernel == KL_GROESTLCOIN || gpus[0].kernel == KL_W || gpus[0].kernel == KL_TWECOIN)
 		sha256(pool->coinbase, pool->swork.cb_len, merkle_root);
 	else
 		gen_hash(pool->coinbase, merkle_root, pool->swork.cb_len);
@@ -6179,7 +6194,11 @@ static void rebuild_nonce(struct work *work, uint32_t nonce)
 			darkcoin_regenhash(work);
 			break;
 		case KL_QUBITCOIN:
+	    case KL_QUBIT:
 			qubitcoin_regenhash(work);
+			break;
+        case KL_FRESH:
+			fresh_regenhash(work);
 			break;
 		case KL_QUARKCOIN:
 			quarkcoin_regenhash(work);
@@ -6212,6 +6231,13 @@ static void rebuild_nonce(struct work *work, uint32_t nonce)
 		case KL_X13MOD:
 		case KL_X13MODOLD:
 			marucoin_regenhash(work);
+			break;
+        case KL_X15:
+			x15_regenhash(work);
+			break;
+        
+	    case KL_W:
+			W_regenhash(work);
 			break;
 		default:
 			scrypt_regenhash(work);
