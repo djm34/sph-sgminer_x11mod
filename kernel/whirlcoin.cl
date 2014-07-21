@@ -80,23 +80,9 @@ typedef long sph_s64;
 #define SPH_KECCAK_UNROLL   0
 #define SPH_HAMSI_EXPAND_BIG 4
 
-#include "blake.cl"
-#include "bmw.cl"
-#include "groestl.cl"
-#include "jh.cl"
-#include "keccak.cl"
-#include "skein.cl"
-#include "luffa.cl"
-#include "cubehash.cl"
-#include "shavite.cl"
-#include "simd.cl"
-#include "echo.cl"
-#include "hamsi.cl"
-#include "fugue.cl"
-#include "shabal.cl"
+
 #include "whirlpool.cl"
-#include "sha2.cl"
-#include "haval.cl"
+
 
 #define SWAP4(x) as_uint(as_uchar4(x).wzyx)
 #define SWAP8(x) as_ulong(as_uchar8(x).s76543210)
