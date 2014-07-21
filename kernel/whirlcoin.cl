@@ -91,19 +91,14 @@ typedef long sph_s64;
     #define DEC64E(x) (x)
     #define DEC64BE(x) (*(const __global sph_u64 *) (x));
     #define DEC32LE(x) SWAP4(*(const __global sph_u32 *) (x));
+    #define DEC64LE(x) SWAP8(*(const __global sph_u64 *) (x));
 #else
     #define DEC64E(x) SWAP8(x)
     #define DEC64BE(x) SWAP8(*(const __global sph_u64 *) (x));
     #define DEC32LE(x) (*(const __global sph_u32 *) (x));
+    #define DEC64LE(x) (*(const __global sph_u64 *) (x));
 #endif
 
-#define SHL(x, n)            ((x) << (n))
-#define SHR(x, n)            ((x) >> (n))
-
-#define CONST_EXP2    q[i+0] + SPH_ROTL64(q[i+1], 5)  + q[i+2] + SPH_ROTL64(q[i+3], 11) + \
-                    q[i+4] + SPH_ROTL64(q[i+5], 27) + q[i+6] + SPH_ROTL64(q[i+7], 32) + \
-                    q[i+8] + SPH_ROTL64(q[i+9], 37) + q[i+10] + SPH_ROTL64(q[i+11], 43) + \
-                    q[i+12] + SPH_ROTL64(q[i+13], 53) + (SHR(q[i+14],1) ^ q[i+14]) + (SHR(q[i+15],2) ^ q[i+15])
 
 
 typedef union {
