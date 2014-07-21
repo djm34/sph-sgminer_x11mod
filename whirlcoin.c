@@ -40,7 +40,7 @@
 typedef struct {
     
     sph_whirlpool1_context    whirlpool1,whirlpool2,whirlpool3,whirlpool4;
-	sph_blake512_context    blake1;
+	
 } Whash_context_holder;
 
 Whash_context_holder base_contexts;
