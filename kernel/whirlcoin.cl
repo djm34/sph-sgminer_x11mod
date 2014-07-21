@@ -29,8 +29,8 @@
  *
  * @author   djm34
  */
-#ifndef X17MOD_CL
-#define X17MOD_CL
+#ifndef W_CL
+#define W_CL
 
 #if __ENDIAN_LITTLE__
 #define SPH_LITTLE_ENDIAN 1
