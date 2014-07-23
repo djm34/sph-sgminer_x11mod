@@ -57,28 +57,15 @@ typedef long sph_s64;
 #define SPH_C64(x)    ((sph_u64)(x ## UL))
 
 
-
-
+#define SPH_C32(x)    ((sph_u32)(x ## U))
 #define SPH_T32(x) (as_uint(x))
 #define SPH_ROTL32(x, n) rotate(as_uint(x), as_uint(n))
 #define SPH_ROTR32(x, n)   SPH_ROTL32(x, (32 - (n)))
+
+#define SPH_C64(x)    ((sph_u64)(x ## UL))
 #define SPH_T64(x) (as_ulong(x))
 #define SPH_ROTL64(x, n) rotate(as_ulong(x), (n) & 0xFFFFFFFFFFFFFFFFUL)
 #define SPH_ROTR64(x, n)   SPH_ROTL64(x, (64 - (n)))
-
-
-#define SPH_ECHO_64 1
-#define SPH_KECCAK_64 1
-#define SPH_JH_64 1
-#define SPH_SIMD_NOCOPY 0
-#define SPH_KECCAK_NOCOPY 0
-#define SPH_COMPACT_BLAKE_64 0
-#define SPH_LUFFA_PARALLEL 0
-#define SPH_SMALL_FOOTPRINT_GROESTL 0
-#define SPH_GROESTL_BIG_ENDIAN 0
-#define SPH_CUBEHASH_UNROLL 0
-#define SPH_KECCAK_UNROLL   0
-#define SPH_HAMSI_EXPAND_BIG 4
 
 
 #include "whirlpool.cl"
