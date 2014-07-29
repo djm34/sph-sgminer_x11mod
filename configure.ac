@@ -363,6 +363,7 @@ AC_DEFINE_UNQUOTED([X13MOD_KERNNAME], ["x13mod"], [Filename for X13mod optimised
 AC_DEFINE_UNQUOTED([X15_KERNNAME], ["x15"], [Filename for X15 multi kernel])
 AC_DEFINE_UNQUOTED([W_KERNNAME], ["whirlcoin"], [Filename for W multi kernel])
 AC_DEFINE_UNQUOTED([FRESH_KERNNAME], ["fresh"], [Filename for fresh multi kernel])
+AC_DEFINE_UNQUOTED([DOOM_KERNNAME], ["doom"], [Filename for doomcoin kernel])
 AC_DEFINE_UNQUOTED([X13MODOLD_KERNNAME], ["x13modold"], [Filename for X13mod optimised kernel (AMD HD 5xxx/6xxx)])
 
 AC_SUBST(OPENCL_LIBS)

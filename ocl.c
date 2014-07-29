@@ -370,7 +370,7 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize)
 	/////////////////////////////////////////////////////////////////
 	// Create an OpenCL command queue
 	/////////////////////////////////////////////////////////////////
-	if ((cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD))
+	if ((cgpu->kernel == KL_DOOM) ||(cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD))
 		clState->commandQueue = clCreateCommandQueue(clState->context, devices[gpu],
 							     0, &status);
 	else
@@ -518,7 +518,11 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize)
 			strcpy(filename, FRESH_KERNNAME".cl");
 			strcpy(binaryfilename, FRESH_KERNNAME);
 			break;
-        
+        case KL_DOOM:
+			applog(LOG_WARNING, "Kernel Doom");
+			strcpy(filename, DOOM_KERNNAME".cl");
+			strcpy(binaryfilename, DOOM_KERNNAME);
+			break;
 		case KL_QUBITCOIN:
 			applog(LOG_WARNING, "Kernel qubitcoin is experimental.");
 			strcpy(filename, QUBITCOIN_KERNNAME".cl");
@@ -1020,7 +1024,7 @@ built:
 	    }
 	}
 
-	if ((cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD)) {
+	if ((cgpu->kernel == KL_DOOM) || (cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD)) {
 		if (!allocateHashBuffer(gpu, clState))
 			return NULL;
 	}

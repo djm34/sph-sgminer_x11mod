@@ -396,6 +396,7 @@ enum cl_kernels {
 	KL_X11MOD,
 	KL_X13MOD,
 	KL_X15,
+	KL_DOOM,
 	KL_FRESH,
 	KL_W,
 	KL_X13MODOLD,

@@ -59,6 +59,7 @@ char *curly = ":D";
 #include "darkcoin.h"
 #include "nist5.h"
 #include "x15.h"
+#include "doom.h"
 #include "whirlcoin.h"
 
 #if defined(unix) || defined(__APPLE__)
@@ -4363,7 +4364,9 @@ void write_config(FILE *fcfg)
                 case KL_X15:
 					fprintf(fcfg, X15_KERNNAME);
 					break;
-  
+                case KL_DOOM:
+					fprintf(fcfg, DOOM_KERNNAME);
+					break;
                 case KL_W:
 					fprintf(fcfg, W_KERNNAME);
 					break;
@@ -6235,7 +6238,9 @@ static void rebuild_nonce(struct work *work, uint32_t nonce)
         case KL_X15:
 			x15_regenhash(work);
 			break;
-        
+        case KL_DOOM:
+			doom_regenhash(work);
+			break;
 	    case KL_W:
 			W_regenhash(work);
 			break;

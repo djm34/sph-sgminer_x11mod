@@ -237,7 +237,8 @@ static enum cl_kernels select_kernel(char *arg)
 		return KL_QUBIT;
 	if (!strcmp(arg, FRESH_KERNNAME))
 		return KL_FRESH;
-	
+	if (!strcmp(arg, DOOM_KERNNAME))
+		return KL_DOOM;
 	if (!strcmp(arg, QUARKCOIN_KERNNAME))
 		return KL_QUARKCOIN;
 	if (!strcmp(arg, MYRIADCOIN_GROESTL_KERNNAME))
@@ -1001,7 +1002,7 @@ retry: // TODO: refactor
 		gpus[selected].xintensity = 0; // Disable xintensity when enabling intensity
 		gpus[selected].rawintensity = 0; // Disable raw intensity when enabling intensity
 
-		if ((gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD) || (gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD)) {
+		if ((gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD) || (gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD)) {
 			for (i = 0; i < mining_threads; ++i) {
 				thr = get_thread(i);
 				cgpu = thr->cgpu;
@@ -1062,7 +1063,7 @@ retry: // TODO: refactor
 		gpus[selected].xintensity = xintensity;
 		gpus[selected].rawintensity = 0; // Disable raw intensity when enabling intensity
 
-		if ((gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_X13MOD || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
+		if ((gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_X13MOD || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
 			for (i = 0; i < mining_threads; ++i) {
 				thr = get_thread(i);
 				cgpu = thr->cgpu;
@@ -1123,7 +1124,7 @@ retry: // TODO: refactor
 		gpus[selected].xintensity = 0; // Disable xintensity when enabling intensity
 		gpus[selected].rawintensity = rawintensity; 
 
-		if ((gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD ||(gpus[selected].kernel == KL_X15) ||  (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
+		if ((gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD ||(gpus[selected].kernel == KL_X15) ||  (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
 			for (i = 0; i < mining_threads; ++i) {
 				thr = get_thread(i);
 				cgpu = thr->cgpu;
@@ -1830,7 +1831,9 @@ static bool opencl_thread_prepare(struct thr_info *thr)
 			case KL_FRESH:
 				cgpu->kname = FRESH_KERNNAME;
 				break;
-            
+            case KL_DOOM:
+				cgpu->kname = DOOM_KERNNAME;
+				break;
 			case KL_QUARKCOIN:
 				cgpu->kname = QUARKCOIN_KERNNAME;
 				break;
@@ -1938,6 +1941,7 @@ static bool opencl_thread_init(struct thr_info *thr)
 		break;
 	case KL_DARKCOIN:
 	case KL_QUBITCOIN:
+    case KL_DOOM:
 	case KL_QUARKCOIN:
 	case KL_MYRIADCOIN_GROESTL:
 	case KL_FUGUECOIN:
