@@ -58,6 +58,7 @@ sgminer_SOURCES += whirlcoin.c whirlcoin.h
 sgminer_SOURCES += x15.c x15.h
 sgminer_SOURCES += nist5.c nist5.h
 sgminer_SOURCES += doom.c doom.h
+sgminer_SOURCES += goalcoin.c goalcoin.h
 sgminer_SOURCES += kernel/*.cl
 
 bin_SCRIPTS	= $(top_srcdir)/kernel/*.cl

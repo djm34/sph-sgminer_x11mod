@@ -61,6 +61,7 @@ char *curly = ":D";
 #include "x15.h"
 #include "doom.h"
 #include "whirlcoin.h"
+#include "goalcoin.h"
 
 #if defined(unix) || defined(__APPLE__)
 	#include <errno.h>
@@ -4364,6 +4365,9 @@ void write_config(FILE *fcfg)
                 case KL_X15:
 					fprintf(fcfg, X15_KERNNAME);
 					break;
+                case KL_GOAL:
+					fprintf(fcfg, GOAL_KERNNAME);
+					break;
                 case KL_DOOM:
 					fprintf(fcfg, DOOM_KERNNAME);
 					break;
@@ -6237,6 +6241,9 @@ static void rebuild_nonce(struct work *work, uint32_t nonce)
 			break;
         case KL_X15:
 			x15_regenhash(work);
+			break;
+        case KL_GOAL:
+			goal_regenhash(work);
 			break;
         case KL_DOOM:
 			doom_regenhash(work);

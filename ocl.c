@@ -370,7 +370,7 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize)
 	/////////////////////////////////////////////////////////////////
 	// Create an OpenCL command queue
 	/////////////////////////////////////////////////////////////////
-	if ((cgpu->kernel == KL_DOOM) ||(cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD))
+	if ((cgpu->kernel == KL_GOAL) || (cgpu->kernel == KL_DOOM) ||(cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD))
 		clState->commandQueue = clCreateCommandQueue(clState->context, devices[gpu],
 							     0, &status);
 	else
@@ -592,6 +592,11 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize)
 			applog(LOG_WARNING, "Kernel x15 is experimental.");
 			strcpy(filename, X15_KERNNAME".cl");
 			strcpy(binaryfilename, X15_KERNNAME);
+			break;
+        case KL_GOAL:
+			applog(LOG_WARNING, "Kernel Goalcoin");
+			strcpy(filename, GOAL_KERNNAME".cl");
+			strcpy(binaryfilename, GOAL_KERNNAME);
 			break;
         case KL_W:
 			applog(LOG_WARNING, "Kernel whirlcoin is not really experimental.");
@@ -990,6 +995,14 @@ built:
 		CL_CREATE_KERNEL(shabal);
 	    CL_CREATE_KERNEL(whirlpool);
 	}
+	else if (clState->chosen_kernel == KL_GOAL) {
+	    CL_CREATE_KERNEL(blake);
+	    CL_CREATE_KERNEL(groestl);
+        CL_CREATE_KERNEL(jh);
+	    CL_CREATE_KERNEL(keccak);
+	    CL_CREATE_KERNEL(skein);
+	    CL_CREATE_KERNEL(whirlpool);
+	}
 	else if (clState->chosen_kernel == KL_W) {
 	     CL_CREATE_KERNEL(whirlpool);
 		 CL_CREATE_KERNEL(whirlpool2);
@@ -1024,7 +1037,7 @@ built:
 	    }
 	}
 
-	if ((cgpu->kernel == KL_DOOM) || (cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD)) {
+	if ((cgpu->kernel == KL_GOAL) || (cgpu->kernel == KL_DOOM) || (cgpu->kernel == KL_W) ||  (cgpu->kernel == KL_FRESH) || (cgpu->kernel == KL_QUBIT) || (cgpu->kernel == KL_X11MOD) || (cgpu->kernel == KL_X13MOD) ||(cgpu->kernel == KL_X15) ||  (cgpu->kernel == KL_NIST5) || (cgpu->kernel == KL_X13MODOLD)) {
 		if (!allocateHashBuffer(gpu, clState))
 			return NULL;
 	}

@@ -261,6 +261,8 @@ static enum cl_kernels select_kernel(char *arg)
 		return KL_X13MOD;
 	if (!strcmp(arg, X15_KERNNAME))
 		return KL_X15;
+    if (!strcmp(arg, GOAL_KERNNAME))
+		return KL_GOAL;
 	if (!strcmp(arg, W_KERNNAME))
 		return KL_W;
 	if (!strcmp(arg, X13MODOLD_KERNNAME))
@@ -1002,7 +1004,9 @@ retry: // TODO: refactor
 		gpus[selected].xintensity = 0; // Disable xintensity when enabling intensity
 		gpus[selected].rawintensity = 0; // Disable raw intensity when enabling intensity
 
-		if ((gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD) || (gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD)) {
+		if ((gpus[selected].kernel == KL_GOAL) || (gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || 
+			(gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD) || 
+			(gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD)) {
 			for (i = 0; i < mining_threads; ++i) {
 				thr = get_thread(i);
 				cgpu = thr->cgpu;
@@ -1063,7 +1067,9 @@ retry: // TODO: refactor
 		gpus[selected].xintensity = xintensity;
 		gpus[selected].rawintensity = 0; // Disable raw intensity when enabling intensity
 
-		if ((gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_X13MOD || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
+		if ((gpus[selected].kernel == KL_GOAL) || (gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  
+			(gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || 
+			(gpus[selected].kernel == KL_X15) || (gpus[selected].kernel == KL_X13MOD || (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
 			for (i = 0; i < mining_threads; ++i) {
 				thr = get_thread(i);
 				cgpu = thr->cgpu;
@@ -1124,7 +1130,9 @@ retry: // TODO: refactor
 		gpus[selected].xintensity = 0; // Disable xintensity when enabling intensity
 		gpus[selected].rawintensity = rawintensity; 
 
-		if ((gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || (gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD ||(gpus[selected].kernel == KL_X15) ||  (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
+		if ((gpus[selected].kernel == KL_GOAL) || (gpus[selected].kernel == KL_DOOM) || (gpus[selected].kernel == KL_W) ||  (gpus[selected].kernel == KL_FRESH) || 
+			(gpus[selected].kernel == KL_QUBIT) || (gpus[selected].kernel == KL_X11MOD) || (gpus[selected].kernel == KL_X13MOD ||
+			(gpus[selected].kernel == KL_X15) ||  (gpus[selected].kernel == KL_NIST5) || (gpus[selected].kernel == KL_X13MODOLD))) {
 			for (i = 0; i < mining_threads; ++i) {
 				thr = get_thread(i);
 				cgpu = thr->cgpu;
@@ -1458,6 +1466,40 @@ static cl_int queue_x15_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unus
 
 	return status;
 }
+
+static cl_int queue_goal_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
+{
+	unsigned char *midstate = blk->work->midstate;
+	cl_kernel *kernel;
+	unsigned int num = 0;
+	cl_ulong le_target;
+	cl_int status = 0;
+
+	le_target = *(cl_ulong *)(blk->work->device_target + 24);
+	flip80(clState->cldata, blk->work->data);
+	status = clEnqueueWriteBuffer(clState->commandQueue, clState->CLbuffer0, true, 0, 80, clState->cldata, 0, NULL,NULL);
+
+//clbuffer, hashes
+	kernel = &clState->kernel_blake;
+	CL_SET_ARG_N(0,clState->CLbuffer0);
+	CL_SET_ARG_N(1,clState->hash_buffer);
+	kernel = &clState->kernel_groestl;
+	CL_SET_ARG_N(0,clState->hash_buffer);
+    kernel = &clState->kernel_jh;
+	CL_SET_ARG_N(0,clState->hash_buffer);
+	kernel = &clState->kernel_keccak;
+	CL_SET_ARG_N(0,clState->hash_buffer);
+	kernel = &clState->kernel_skein;
+	CL_SET_ARG_N(0,clState->hash_buffer);
+//hashes, output, target
+	kernel = &clState->kernel_whirlpool;
+	CL_SET_ARG_N(0,clState->hash_buffer);
+	CL_SET_ARG_N(1,clState->outputBuffer);
+	CL_SET_ARG_N(2,le_target);
+
+	return status;
+}
+
 
 static cl_int queue_W_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
@@ -1870,6 +1912,9 @@ static bool opencl_thread_prepare(struct thr_info *thr)
             case KL_X15:
 				cgpu->kname = X15_KERNNAME;
 				break;
+             case KL_GOAL:
+				cgpu->kname = GOAL_KERNNAME;
+				break;
             case KL_W:
 				cgpu->kname = W_KERNNAME;
 				break;
@@ -1921,6 +1966,9 @@ static bool opencl_thread_init(struct thr_info *thr)
 		break;
     case KL_X15:
 		thrdata->queue_kernel_parameters = &queue_x15_kernel;
+		break;
+    case KL_GOAL:
+		thrdata->queue_kernel_parameters = &queue_goal_kernel;
 		break;
     case KL_W:
 		thrdata->queue_kernel_parameters = &queue_W_kernel;
@@ -2188,6 +2236,26 @@ static int64_t opencl_scanhash(struct thr_info *thr, struct work *work,
 		CL_ENQUEUE_KERNEL(whirlpool, NULL);
             }
 	}
+	else if (clState->chosen_kernel == KL_GOAL) {
+	    if (clState->goffset) {
+		size_t global_work_offset[1];
+		global_work_offset[0] = work->blk.nonce;
+		CL_ENQUEUE_KERNEL(blake, global_work_offset);
+		CL_ENQUEUE_KERNEL(groestl, global_work_offset);
+		CL_ENQUEUE_KERNEL(jh, global_work_offset);
+		CL_ENQUEUE_KERNEL(keccak, global_work_offset);
+		CL_ENQUEUE_KERNEL(skein, global_work_offset);
+		CL_ENQUEUE_KERNEL(whirlpool, global_work_offset);
+	    }
+	    else {
+		CL_ENQUEUE_KERNEL(blake, NULL);		
+		CL_ENQUEUE_KERNEL(groestl, NULL);
+        CL_ENQUEUE_KERNEL(jh, NULL);
+		CL_ENQUEUE_KERNEL(keccak, NULL);
+		CL_ENQUEUE_KERNEL(skein, NULL);
+		CL_ENQUEUE_KERNEL(whirlpool, NULL);
+            }
+	}
 	else if (clState->chosen_kernel == KL_W) {
 	    if (clState->goffset) {
 		size_t global_work_offset[1];
@@ -2337,6 +2405,14 @@ static void opencl_thread_shutdown(struct thr_info *thr)
 	    clReleaseKernel(clState->kernel_hamsi);
 	    clReleaseKernel(clState->kernel_fugue);
 		clReleaseKernel(clState->kernel_shabal);
+	    clReleaseKernel(clState->kernel_whirlpool);
+	}
+	else if (clState->chosen_kernel == KL_GOAL) {
+	    clReleaseKernel(clState->kernel_blake);
+	    clReleaseKernel(clState->kernel_groestl);
+        clReleaseKernel(clState->kernel_jh);
+	    clReleaseKernel(clState->kernel_keccak);
+	    clReleaseKernel(clState->kernel_skein);
 	    clReleaseKernel(clState->kernel_whirlpool);
 	}
 	else if (clState->chosen_kernel == KL_W) {

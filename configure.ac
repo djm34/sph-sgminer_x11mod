@@ -361,6 +361,7 @@ AC_DEFINE_UNQUOTED([NIST5_KERNNAME], ["nist5"], [Filename for nist5 optimised ke
 AC_DEFINE_UNQUOTED([X11MOD_KERNNAME], ["x11mod"], [Filename for X11mod optimised kernel])
 AC_DEFINE_UNQUOTED([X13MOD_KERNNAME], ["x13mod"], [Filename for X13mod optimised kernel])
 AC_DEFINE_UNQUOTED([X15_KERNNAME], ["x15"], [Filename for X15 multi kernel])
+AC_DEFINE_UNQUOTED([GOAL_KERNNAME], ["goalcoin"], [Filename for Goalcoin kernel])
 AC_DEFINE_UNQUOTED([W_KERNNAME], ["whirlcoin"], [Filename for W multi kernel])
 AC_DEFINE_UNQUOTED([FRESH_KERNNAME], ["fresh"], [Filename for fresh multi kernel])
 AC_DEFINE_UNQUOTED([DOOM_KERNNAME], ["doom"], [Filename for doomcoin kernel])
